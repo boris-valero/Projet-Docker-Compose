@@ -4,7 +4,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 require("dotenv").config(); // Lire le contenu du fichier .env
 
 const app = express();
-const port = 8888;
+const port = 3000;
 
 const sequelize = new Sequelize(
   process.env.DATABASE_NAME,
@@ -38,7 +38,7 @@ const Quote = sequelize.define(
 app.get("/affirmation", async (req, res) => {
   try {
     await sequelize.authenticate();
-    const quote = await Quote.findOne({ order: sequelize.random() });
+    const quote = await Quote.findAll();
     res.json(quote);
   } catch (error) {
     res.status(500).json({ error: "Une erreur est survenue" });
