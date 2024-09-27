@@ -1,29 +1,60 @@
-const express = require('express')
-const fetch = require('node-fetch')
-const { Sequelize } = require('sequelize')
-require('dotenv').config() // Lire le contenu du fichier .env
+const express = require("express");
+const fetch = require("node-fetch");
+const { Sequelize, DataTypes } = require("sequelize");
+require("dotenv").config(); // Lire le contenu du fichier .env
 
-const app = express()
-const port = 8888
+const app = express();
+const port = 8888;
 
-app.get('/', async (req, res) => {
-  const sequelize = new Sequelize(
-    process.env.DATABASE_NAME,
-    process.env.MYSQL_USER,
-    process.env.MYSQL_PASSWORD,
-    {
-      host: process.env.MYSQL_HOST, // Le host correspond au nom du container, tel qu'il est nommé dans compose.yaml !
-      dialect: 'mysql',
-    }
-  )
+const sequelize = new Sequelize(
+  process.env.DATABASE_NAME,
+  process.env.MYSQL_USER,
+  process.env.MYSQL_PASSWORD,
+  {
+    host: process.env.MYSQL_HOST,
+    dialect: "mysql",
+  }
+);
+
+const Quote = sequelize.define(
+  "Quote",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    content: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  {
+    tableName: "quotes_fr",
+    timestamps: false,
+  }
+);
+
+app.get("/affirmation", async (req, res) => {
   try {
-    await sequelize.authenticate()
-    const [results, metadata] = await sequelize.query('SELECT * FROM quotes_fr')
-    console.log('Connection has been established successfully.')
+    await sequelize.authenticate();
+    const quote = await Quote.findOne({ order: sequelize.random() });
+    res.json(quote);
+  } catch (error) {
+    res.status(500).json({ error: "Une erreur est survenue" });
+  }
+});
 
-    // Récupérer une citation aléatoire
-    const index = Math.ceil(Math.random() * (results.length - 1))
-    const affirmation = results[index].content
+app.get("/", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    const [results, metadata] = await sequelize.query(
+      "SELECT * FROM quotes_fr"
+    );
+    console.log("Connection has been established successfully.");
+
+    const index = Math.ceil(Math.random() * (results.length - 1));
+    const affirmation = results[index].content;
 
     res.send(`
       <style>
@@ -70,21 +101,21 @@ app.get('/', async (req, res) => {
         <h1>L'affirmation tirée de la base de données est la suivante :</h1>
         <p>${affirmation}</p>
       </div>
-    `)
+    `);
   } catch (error) {
-    console.error('Unable to connect to the database:', error)
-    res.json({ success: false, msg: 'Unable to connect to the database' })
+    console.error("Unable to connect to the database:", error);
+    res.json({ success: false, msg: "Unable to connect to the database" });
   }
-})
+});
 
-app.all('*', (req, res) => {
+app.all("*", (req, res) => {
   res
     .status(404)
     .send(
-      '<h1>404! Page not found</h1> <br /> Sorry, you came to the wrong place. The Only URL available is : http://localhost:7777/'
-    )
-})
+      "<h1>404! Page not found</h1> <br /> Sorry, you came to the wrong place. The Only URL available is : http://localhost:7777/"
+    );
+});
 
 app.listen(port, () => {
-  console.log(`App listening on port ${port}`)
-})
+  console.log(`App listening on port ${port}`);
+});
