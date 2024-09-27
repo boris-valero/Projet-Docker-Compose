@@ -45,6 +45,22 @@ app.get("/affirmation", async (req, res) => {
   }
 });
 
+app.get("/affirmation/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await sequelize.authenticate();
+    const quote = await Quote.findByPk(id);
+    if (quote) {
+      res.json(quote);
+    } else {
+      res.status(404).json({ error: "Citation non trouvée" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Une erreur est survenue" });
+  }
+});
+
+
 app.get("/", async (req, res) => {
   try {
     await sequelize.authenticate();
