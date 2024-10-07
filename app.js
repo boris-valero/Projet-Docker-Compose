@@ -1,7 +1,7 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const { Sequelize, DataTypes } = require("sequelize");
-require("dotenv").config(); // Lire le contenu du fichier .env
+require("dotenv").config(); 
 
 const app = express();
 const port = 3000;
